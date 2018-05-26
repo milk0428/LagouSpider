@@ -20,7 +20,7 @@ import sys
 # BASE_DIR=os.path.dirname(os.path.abspath(os.path.dirname(__file__)))    #这种表达与下一行一样
 BASE_DIR=os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0,os.path.join(BASE_DIR,"LagouSpider"))
-print(BASE_DIR)
+# print(BASE_DIR)
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'LagouSpider (+http://www.yourdomain.com)'

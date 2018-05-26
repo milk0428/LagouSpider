@@ -2,17 +2,33 @@
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
-
+from selenium import webdriver
+from LagouSpider.settings import BASE_DIR
+import time
+import pickle
+import os
 
 class LagouSpider(CrawlSpider):
     name = 'lagou'
     allowed_domains = ['www.lagou.com']
     start_urls = ["https://www.lagou.com/"]
 
+    header={
+        "HOST": "www.lagou.com",
+        "Referer": "https://www.lagou.com/",
+        'User-Agent': "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0"
+    }
+
+    # rules = (
+    #     Rule(LinkExtractor(allow=r'zhaopin/.*'),follow=True),
+    #     Rule(LinkExtractor(allow=r'gongsi/j\d+.html'), follow=True),
+    #     Rule(LinkExtractor(allow=r'jobs/\d+.html'), callback='parse_job', follow=True),
+    # )
+
     rules = (
-        Rule(LinkExtractor(allow='zhaopin/.*'),follow=True),
-        Rule(LinkExtractor(allow='gongsi/j\d+.html'), follow=True),
-        Rule(LinkExtractor(allow=r'jobs/\d+.html'), callback='parse_job', follow=True),
+        Rule ( LinkExtractor ( allow=r'gongsi/j/\d+.html' ) , follow=True ) ,
+        Rule ( LinkExtractor ( allow=r'zhaopin/.*' ) , follow=True ) ,
+        Rule ( LinkExtractor ( allow=r'jobs/\d+.html' ) , callback='parse_job' , follow=True ) ,
     )
 
     # #手动重载该函数，相当于之前的parse()
@@ -36,25 +52,21 @@ class LagouSpider(CrawlSpider):
     def start_requests(self):
         #注意传入headers
         # return [scrapy.Request("https://www.zhihu.com/#signin",callback=self.login,headers=self.header)]
-        username=input("请输入知乎用户名：")
-        password=input("请输入知乎密码：")
-        browser=webdriver.Firefox(executable_path="D:/PycharmProjects/ZhihuSpider/geckodriver.exe")
-        browser.get("https://www.zhihu.com/signin?next=%2F")
+        username=input("请输入拉勾用户名：")
+        password=input("请输入拉勾密码：")
+        browser=webdriver.Firefox(executable_path=BASE_DIR+"\geckodriver.exe")
+        browser.get("https://passport.lagou.com/login/login.html?service=https%3a%2f%2fwww.lagou.com%2f")
 
-        browser.find_element_by_css_selector(".SignFlow-accountInput input").send_keys(username)
-        browser.find_element_by_css_selector(".SignFlow-password input").send_keys(password)
-
-        #暂停10秒以输入验证码
-        time.sleep(10)
-
-        browser.find_element_by_css_selector(".SignFlow .SignFlow-submitButton").click()
+        browser.find_element_by_css_selector("input[placeholder='请输入常用手机号/邮箱']").send_keys(username)
+        browser.find_element_by_css_selector("input[placeholder='请输入密码']").send_keys(password)
+        browser.find_element_by_css_selector(".active .btn_green").click()
         #等待5秒以使得页面读取完毕
-        time.sleep(15)
+        time.sleep(5)
         cookies=browser.get_cookies()
         # print(cookies)
         cookie_dict={}
         for cookie in cookies:
-            f = open('D:/PycharmProjects/ZhihuSpider/cookies/zhihu/' + cookie['name'] + '.zhihu', 'wb')
+            f = open('D:/PycharmProjects/LagouSpider/cookies/Lagou/' + cookie['name'] + '.lagou', 'wb')
             pickle.dump(cookie, f)
             f.close()
             #只获取cookie的name/value字段的值并装进字典，将该字典赋值给scrapy的cookies以维持登陆状态。注意该原来的字典中有很多字段。
